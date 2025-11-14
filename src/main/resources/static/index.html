@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人脸比对系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .upload-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .upload-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            border: 2px dashed #dee2e6;
+            text-align: center;
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+            margin-bottom: 15px;
+        }
+
+        .upload-area:hover {
+            border-color: #5a67d8;
+            background: #e6f3ff;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .preview-container {
+            margin-top: 15px;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .file-info {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .compare-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-top: 20px;
+            border-left: 5px solid #667eea;
+            text-align: center;
+        }
+
+        .score-display {
+            font-size: 3em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .high-score {
+            color: #28a745;
+        }
+
+        .medium-score {
+            color: #ffc107;
+        }
+
+        .low-score {
+            color: #dc3545;
+        }
+
+        .result-text {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .result-detail {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-ready {
+            background: #28a745;
+        }
+
+        .status-waiting {
+            background: #ffc107;
+        }
+
+        .service-status {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .upload-section {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>👥 人脸比对系统</h1>
+        <p>上传两张图片进行人脸相似度比对</p>
+    </div>
+
+    <div class="content">
+        <!-- 服务状态 -->
+        <div class="service-status">
+            <span class="status-indicator status-ready" id="statusIndicator"></span>
+            <span id="statusText">检查服务状态...</span>
+        </div>
+
+        <!-- 图片上传区域 -->
+        <div class="upload-section">
+            <div class="upload-card">
+                <div class="card-title">📷 第一张图片</div>
+                <div class="upload-area" onclick="document.getElementById('file1').click()">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">点击选择或拖拽图片</div>
+                    <div style="font-size: 0.9em; color: #888;">支持 JPG、PNG 格式</div>
+                </div>
+                <input type="file" id="file1" class="file-input" accept="image/jpeg,image/png,image/jpg" onchange="handleFileSelect(1, this.files[0])">
+
+                <div class="preview-container" id="previewContainer1" style="display: none;">
+                    <img id="previewImage1" class="preview-image">
+                    <div class="file-info" id="fileInfo1"></div>
+                </div>
+            </div>
+
+            <div class="upload-card">
+                <div class="card-title">📷 第二张图片</div>
+                <div class="upload-area" onclick="document.getElementById('file2').click()">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">点击选择或拖拽图片</div>
+                    <div style="font-size: 0.9em; color: #888;">支持 JPG、PNG 格式</div>
+                </div>
+                <input type="file" id="file2" class="file-input" accept="image/jpeg,image/png,image/jpg" onchange="handleFileSelect(2, this.files[0])">
+
+                <div class="preview-container" id="previewContainer2" style="display: none;">
+                    <img id="previewImage2" class="preview-image">
+                    <div class="file-info" id="fileInfo2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 比对按钮 -->
+        <div class="compare-section">
+            <button class="btn" onclick="compareFaces()" id="compareBtn" disabled>开始人脸比对</button>
+        </div>
+
+        <!-- 加载状态 -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>正在比对图片，请稍候...</div>
+        </div>
+
+        <!-- 结果展示 -->
+        <div class="result-container" id="resultContainer" style="display: none;">
+            <div class="result-text">比对结果</div>
+            <div class="score-display" id="scoreDisplay">0</div>
+            <div class="result-text" id="resultText"></div>
+            <div class="result-detail" id="resultDetail"></div>
+            <div class="result-detail">相似度阈值: 90分</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let file1 = null;
+    let file2 = null;
+
+    // 页面加载时检查服务状态
+    document.addEventListener('DOMContentLoaded', function() {
+        checkServiceStatus();
+        setupDragAndDrop();
+    });
+
+    // 检查服务状态
+    async function checkServiceStatus() {
+        try {
+            const response = await fetch('/api/face/status');
+            const result = await response.json();
+
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+
+            if (result.success) {
+                indicator.className = 'status-indicator status-ready';
+                statusText.textContent = '服务正常，可以开始比对';
+            } else {
+                indicator.className = 'status-indicator status-waiting';
+                statusText.textContent = '服务异常: ' + result.message;
+            }
+        } catch (error) {
+            const indicator = document.getElementById('statusIndicator');
+            const statusText = document.getElementById('statusText');
+            indicator.className = 'status-indicator status-waiting';
+            statusText.textContent = '服务连接失败';
+        }
+    }
+
+    // 设置拖拽功能
+    function setupDragAndDrop() {
+        const uploadAreas = document.querySelectorAll('.upload-area');
+
+        uploadAreas.forEach((area, index) => {
+            const areaNumber = index + 1;
+
+            area.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#5a67d8';
+                this.style.background = '#e6f3ff';
+            });
+
+            area.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#667eea';
+                this.style.background = '#f8f9ff';
+            });
+
+            area.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#667eea';
+                this.style.background = '#f8f9ff';
+
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelect(areaNumber, files[0]);
+                }
+            });
+        });
+    }
+
+    // 处理文件选择
+    function handleFileSelect(areaNumber, file) {
+        if (!file) return;
+
+        const fileInput = document.getElementById(`file${areaNumber}`);
+        const preview = document.getElementById(`previewImage${areaNumber}`);
+        const container = document.getElementById(`previewContainer${areaNumber}`);
+        const fileInfo = document.getElementById(`fileInfo${areaNumber}`);
+
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            container.style.display = 'block';
+
+            // 显示文件信息
+            fileInfo.innerHTML = `
+                    <strong>文件名:</strong> ${file.name}<br>
+                    <strong>大小:</strong> ${(file.size / 1024).toFixed(2)} KB<br>
+                    <strong>类型:</strong> ${file.type}
+                `;
+
+            // 存储文件引用
+            if (areaNumber === 1) {
+                file1 = file;
+            } else {
+                file2 = file;
+            }
+
+            // 更新按钮状态
+            updateCompareButton();
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    // 更新比对按钮状态
+    function updateCompareButton() {
+        document.getElementById('compareBtn').disabled = !(file1 && file2);
+    }
+
+    // 人脸比对
+    async function compareFaces() {
+        if (!file1 || !file2) return;
+
+        const formData = new FormData();
+        formData.append('file1', file1);
+        formData.append('file2', file2);
+
+        try {
+            // 显示加载状态
+            document.getElementById('compareBtn').disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultContainer').style.display = 'none';
+
+            const response = await fetch('/api/face/compare', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            // 隐藏加载状态
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('resultContainer').style.display = 'block';
+
+            if (result.success) {
+                displayResult(result);
+            } else {
+                alert('比对失败: ' + result.message);
+            }
+
+        } catch (error) {
+            document.getElementById('loading').style.display = 'none';
+            alert('请求失败: ' + error.message);
+        } finally {
+            document.getElementById('compareBtn').disabled = false;
+        }
+    }
+
+    // 显示比对结果
+    function displayResult(result) {
+        const score = result.score;
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const resultText = document.getElementById('resultText');
+        const resultDetail = document.getElementById('resultDetail');
+
+        // 设置分数显示
+        scoreDisplay.textContent = score.toFixed(2);
+
+        // 根据分数设置颜色
+        if (score >= 90) {
+            scoreDisplay.className = 'score-display high-score';
+            resultText.textContent = '✅ 是同一个人';
+            resultText.style.color = '#28a745';
+        } else if (score >= 60) {
+            scoreDisplay.className = 'score-display medium-score';
+            resultText.textContent = '⚠️ 相似度一般';
+            resultText.style.color = '#ffc107';
+        } else {
+            scoreDisplay.className = 'score-display low-score';
+            resultText.textContent = '❌ 不是同一个人';
+            resultText.style.color = '#dc3545';
+        }
+
+        // 设置详细结果
+        resultDetail.innerHTML = `
+                相似度: <strong>${score.toFixed(2)}分</strong><br>
+                匹配结果: <strong>${result.isSamePerson ? '匹配成功' : '匹配失败'}</strong>
+            `;
+    }
+
+    // 重置功能（可选）
+    function resetAll() {
+        file1 = null;
+        file2 = null;
+
+        // 重置预览
+        document.getElementById('previewContainer1').style.display = 'none';
+        document.getElementById('previewContainer2').style.display = 'none';
+
+        // 重置文件输入
+        document.getElementById('file1').value = '';
+        document.getElementById('file2').value = '';
+
+        // 重置按钮和结果
+        document.getElementById('compareBtn').disabled = true;
+        document.getElementById('resultContainer').style.display = 'none';
+    }
+</script>
+</body>
+</html>
