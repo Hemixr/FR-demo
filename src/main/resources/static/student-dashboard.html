@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生仪表板 - 人脸识别签到系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            font-size: 24px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 30px;
+        }
+
+        /* 欢迎区域 */
+        .welcome-section {
+            background: white;
+            border-radius: 15px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #4facfe;
+        }
+
+        .welcome-section h1 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .welcome-section p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* 卡片容器 */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4facfe;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2::before {
+            content: '•';
+            color: #4facfe;
+            font-size: 24px;
+        }
+
+        /* 信息显示 */
+        .info-item {
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #666;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        /* 表单组 */
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        /* 按钮 */
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 消息提示 */
+        .message {
+            padding: 14px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 15px 0;
+            padding: 15px;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 文件上传 */
+        .file-input {
+            width: 100%;
+            padding: 20px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .file-input:hover {
+            border-color: #4facfe;
+            background: #f8f9ff;
+        }
+
+        .file-input.drag-over {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .preview-img {
+            max-width: 200px;
+            max-height: 200px;
+            margin: 15px auto;
+            border-radius: 8px;
+            display: block;
+            display: none;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 签到相关样式 */
+        .attendance-card {
+            grid-column: span 2;
+        }
+
+        .attendance-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-present {
+            background: #28a745;
+        }
+
+        .status-absent {
+            background: #dc3545;
+        }
+
+        .status-late {
+            background: #ffc107;
+        }
+
+        .attendance-history {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .attendance-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .attendance-item:last-child {
+            border-bottom: none;
+        }
+
+        .attendance-date {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .attendance-time {
+            color: #666;
+            font-size: 12px;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+
+            .navbar {
+                padding: 0 15px;
+            }
+
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+
+            .attendance-card {
+                grid-column: span 1;
+            }
+
+            .welcome-section {
+                padding: 25px;
+            }
+        }
+
+        /* 调试信息 */
+        .debug-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+            display: none;
+        }
+
+        .debug-toggle {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar">
+    <div class="logo">
+        <span class="logo-icon">👨‍🎓</span>
+        <span>人脸识别签到系统</span>
+    </div>
+    <div class="user-info">
+        <div class="user-avatar" id="userAvatar">S</div>
+        <div class="user-details">
+            <div class="user-name" id="username">加载中...</div>
+            <div class="user-role" id="userRole">学生</div>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+            <span>退出登录</span>
+            <span>🚪</span>
+        </button>
+    </div>
+</nav>
+
+<!-- 主内容区 -->
+<div class="container">
+    <!-- 欢迎信息 -->
+    <div class="welcome-section">
+        <h1>👋 欢迎回来，<span id="welcomeName">同学</span>！</h1>
+        <p id="studentInfo">正在加载学生信息...</p>
+    </div>
+
+    <!-- 消息提示 -->
+    <div id="message" class="message"></div>
+
+    <!-- 卡片容器 -->
+    <div class="cards-container">
+        <!-- 个人信息卡片 -->
+        <div class="card">
+            <h2>📋 个人信息</h2>
+            <div id="personalInfo">
+                <div class="info-item">
+                    <span class="info-label">学号：</span>
+                    <span class="info-value" id="infoStuId">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">姓名：</span>
+                    <span class="info-value" id="infoStuName">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">班级：</span>
+                    <span class="info-value" id="infoClsId">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">账户状态：</span>
+                    <span class="info-value" id="infoStatus">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">注册时间：</span>
+                    <span class="info-value" id="infoCreateTime">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 更新信息卡片 -->
+        <div class="card">
+            <h2>✏️ 更新个人信息</h2>
+            <form id="updateForm">
+                <div class="form-group">
+                    <label for="updateName">姓名</label>
+                    <input type="text" id="updateName" placeholder="输入新姓名">
+                </div>
+                <div class="form-group">
+                    <label for="updateClass">班级</label>
+                    <input type="text" id="updateClass" placeholder="输入新班级">
+                </div>
+                <button type="submit" class="btn">💾 更新信息</button>
+            </form>
+        </div>
+
+        <!-- 人脸管理卡片 -->
+        <div class="card">
+            <h2>📷 人脸照片管理</h2>
+            <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                上传新的人脸照片用于签到识别。请确保照片清晰，面部正面。
+            </p>
+            <form id="faceForm">
+                <div class="file-input" onclick="document.getElementById('faceFile').click()"
+                     id="faceFileDropZone">
+                    📁 点击选择人脸照片或拖拽到此处
+                </div>
+                <input type="file" id="faceFile" accept="image/*" style="display: none;"
+                       onchange="previewFaceImage(event)">
+                <img id="facePreview" class="preview-img" alt="人脸预览">
+                <div class="loading" id="faceLoading">
+                    <div class="loading-spinner"></div>
+                    <span style="margin-left: 10px;">上传中...</span>
+                </div>
+                <button type="button" class="btn" onclick="uploadFace()">
+                    📤 更新人脸照片
+                </button>
+            </form>
+        </div>
+
+        <!-- 密码管理卡片 -->
+        <div class="card">
+            <h2>🔒 修改密码</h2>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label for="oldPassword">原密码</label>
+                    <input type="password" id="oldPassword" placeholder="输入原密码">
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">新密码</label>
+                    <input type="password" id="newPassword" placeholder="输入新密码（至少6位）">
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">确认新密码</label>
+                    <input type="password" id="confirmPassword" placeholder="再次输入新密码">
+                </div>
+                <button type="submit" class="btn">🔐 修改密码</button>
+            </form>
+        </div>
+
+        <!-- 签到功能卡片 -->
+        <div class="card attendance-card">
+            <h2>📝 签到管理</h2>
+            <div id="attendanceInfo">
+                <div class="attendance-status">
+                    <div class="status-indicator" id="todayStatus"></div>
+                    <span id="todayStatusText">今日签到状态：加载中...</span>
+                </div>
+                <button class="btn btn-success" id="checkInBtn" onclick="checkIn()" style="width: 100%;">
+                    📍 人脸签到
+                </button>
+                <div class="attendance-history" id="attendanceHistory">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📅</div>
+                        <p>加载签到记录中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 系统信息卡片 -->
+        <div class="card">
+            <h2>⚙️ 系统信息</h2>
+            <div class="info-item">
+                <span class="info-label">当前用户角色：</span>
+                <span class="info-value" id="systemRole">-</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">当前用户ID：</span>
+                <span class="info-value" id="systemUserId">-</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">API基础地址：</span>
+                <span class="info-value" id="systemApiBase">-</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">登录时间：</span>
+                <span class="info-value" id="loginTime">-</span>
+            </div>
+            <div style="margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="checkSystemHealth()">
+                    🩺 检查系统状态
+                </button>
+                <button class="btn btn-warning" onclick="clearLocalStorage()" style="margin-left: 10px;">
+                    🗑️ 清除本地缓存
+                </button>
+                <button class="debug-toggle" onclick="toggleDebugPanel()" style="margin-top: 10px;">
+                    显示调试信息
+                </button>
+                <div class="debug-panel" id="debugPanel">
+                    <div id="debugInfo">
+                        <p>调试信息将显示在这里...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 签到模态框 -->
+<div id="checkInModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h2 class="modal-title">📍 人脸签到</h2>
+            <button class="close-btn" onclick="closeModal('checkInModal')">&times;</button>
+        </div>
+        <div id="checkInContent">
+            <p style="color: #666; margin-bottom: 20px;">请按照提示完成人脸签到</p>
+            <div id="faceCaptureArea" style="text-align: center;">
+                <video id="cameraPreview" width="100%" height="300" autoplay playsinline
+                       style="border-radius: 8px; margin-bottom: 15px; background: #000;"></video>
+                <canvas id="faceCanvas" width="640" height="480" style="display: none;"></canvas>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn" onclick="captureFace()" id="captureBtn">
+                        📸 拍照签到
+                    </button>
+                    <button class="btn btn-secondary" onclick="stopCamera()">
+                        ❌ 取消
+                    </button>
+                </div>
+            </div>
+            <div id="checkInResult" style="display: none; text-align: center; padding: 30px;">
+                <div id="checkInSpinner" class="loading-spinner" style="width: 40px; height: 40px;"></div>
+                <p id="checkInMessage" style="margin-top: 15px;">正在验证人脸...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== 全局变量 ====================
+    const API_BASE = 'http://localhost:8080/api';
+    let currentUserId = '';
+    let currentRole = '';
+    let currentUsername = '';
+    let loginTime = new Date();
+    let cameraStream = null;
+
+    // ==================== 页面初始化 ====================
+    window.onload = async function() {
+        console.log('=== 学生仪表板开始加载 ===');
+
+        // 获取localStorage中的数据
+        const token = localStorage.getItem('token');
+        currentUserId = localStorage.getItem('userId');
+        currentRole = localStorage.getItem('role');
+        currentUsername = localStorage.getItem('username');
+
+        console.log('从localStorage读取:');
+        console.log('- token:', token ? '存在 (' + token.substring(0, 20) + '...)' : '不存在');
+        console.log('- userId:', currentUserId);
+        console.log('- role:', currentRole);
+        console.log('- username:', currentUsername);
+
+        // 检查登录状态
+        if (!token || !currentUserId) {
+            console.error('未登录或登录信息不完整');
+            showMessage('请先登录', 'warning');
+            setTimeout(() => {
+                window.location.href = 'student-login.html';
+            }, 1500);
+            return;
+        }
+
+        // 如果是教师，重定向到教师面板
+        if (currentRole === 'TEACHER' || currentRole === 'ADMIN') {
+            console.log('检测到教师角色，重定向到教师面板');
+            showMessage('检测到教师账号，正在跳转...', 'warning');
+            setTimeout(() => {
+                window.location.href = 'teacher-dashboard.html';
+            }, 1500);
+            return;
+        }
+
+        // 更新页面基本信息
+        updateBasicInfo();
+
+        // 加载学生详细信息
+        await loadStudentInfo();
+
+        // 更新系统信息
+        updateSystemInfo();
+
+        // 加载签到信息
+        await loadAttendanceInfo();
+
+        console.log('=== 学生仪表板加载完成 ===');
+
+        // 添加调试信息
+        addDebugInfo('页面加载完成');
+    };
+
+    // ==================== 基本信息更新 ====================
+    function updateBasicInfo() {
+        // 更新用户显示信息
+        document.getElementById('username').textContent = currentUsername || '学生';
+        document.getElementById('welcomeName').textContent = currentUsername || '同学';
+        document.getElementById('userRole').textContent = '学生';
+
+        // 设置用户头像首字母
+        const avatar = document.getElementById('userAvatar');
+        if (currentUsername && currentUsername.length > 0) {
+            avatar.textContent = currentUsername.charAt(0).toUpperCase();
+        }
+    }
+
+    // ==================== 加载学生信息 ====================
+    async function loadStudentInfo() {
+        console.log('=== 开始加载学生详细信息 ===');
+        console.log('当前用户ID:', currentUserId);
+
+        const token = localStorage.getItem('token');
+        if (!token || !currentUserId) {
+            console.error('缺少token或userId');
+            showMessage('请重新登录', 'error');
+            return;
+        }
+
+        try {
+            console.log('发送请求到:', `${API_BASE}/student/${currentUserId}`);
+
+            // 显示加载状态
+            document.getElementById('studentInfo').textContent = '正在加载学生信息...';
+
+            const response = await fetch(`${API_BASE}/student/${currentUserId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('响应状态:', response.status);
+            console.log('响应状态文本:', response.statusText);
+
+            // 检查响应状态
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('HTTP错误响应:', errorText);
+
+                if (response.status === 401) {
+                    showMessage('登录已过期，请重新登录', 'error');
+                    setTimeout(logout, 1500);
+                    return;
+                } else if (response.status === 403) {
+                    showMessage('权限不足，无法访问该资源', 'error');
+                    return;
+                } else if (response.status === 404) {
+                    showMessage('学生信息不存在，请联系管理员', 'error');
+                    return;
+                }
+
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            // 解析响应数据
+            const result = await response.json();
+            console.log('学生信息响应:', result);
+
+            // 处理响应
+            if (result.success) {
+                console.log('成功获取学生信息');
+
+                // 更新个人信息显示
+                document.getElementById('infoStuId').textContent = result.stuId || '未知';
+                document.getElementById('infoStuName').textContent = result.stuName || '未知';
+                document.getElementById('infoClsId').textContent = result.clsId || '未设置';
+
+                // 处理状态显示
+                const statusText = result.enabled ? '正常' : '已禁用';
+                const statusColor = result.enabled ? 'green' : 'red';
+                document.getElementById('infoStatus').textContent = statusText;
+                document.getElementById('infoStatus').style.color = statusColor;
+
+                // 处理创建时间
+                if (result.createTime) {
+                    const createTime = new Date(result.createTime).toLocaleString('zh-CN');
+                    document.getElementById('infoCreateTime').textContent = createTime;
+                } else {
+                    document.getElementById('infoCreateTime').textContent = '未知';
+                }
+
+                // 更新欢迎信息
+                document.getElementById('studentInfo').textContent =
+                    `学号：${result.stuId} | 班级：${result.clsId || '未设置'} | 状态：${statusText}`;
+
+                // 更新表单默认值
+                document.getElementById('updateName').value = result.stuName || '';
+                document.getElementById('updateClass').value = result.clsId || '';
+
+                // 更新localStorage中的username（确保一致）
+                if (result.stuName && result.stuName !== currentUsername) {
+                    localStorage.setItem('username', result.stuName);
+                    currentUsername = result.stuName;
+                    updateBasicInfo();
+                }
+
+                showMessage('个人信息加载成功', 'success');
+                addDebugInfo(`学生信息加载成功: ${result.stuId} - ${result.stuName}`);
+
+            } else {
+                console.error('获取学生信息失败:', result.message);
+                showMessage(result.message || '获取学生信息失败', 'error');
+                document.getElementById('studentInfo').textContent = '加载失败';
+            }
+
+        } catch (error) {
+            console.error('加载学生信息异常:', error);
+            showMessage('加载信息失败: ' + error.message, 'error');
+            document.getElementById('studentInfo').textContent = '加载失败';
+            addDebugInfo(`加载失败: ${error.message}`);
+        }
+    }
+
+    // ==================== 更新学生信息 ====================
+    document.getElementById('updateForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const stuName = document.getElementById('updateName').value.trim();
+        const clsId = document.getElementById('updateClass').value.trim();
+
+        if (!stuName) {
+            showMessage('姓名不能为空', 'error');
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        const formData = new FormData();
+        formData.append('stuName', stuName);
+        if (clsId) formData.append('clsId', clsId);
+
+        try {
+            console.log('更新学生信息:', { stuName, clsId });
+
+            const response = await fetch(`${API_BASE}/student/${currentUserId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            console.log('更新响应:', data);
+
+            if (data.success) {
+                showMessage('个人信息更新成功！', 'success');
+
+                // 更新localStorage
+                localStorage.setItem('username', stuName);
+                currentUsername = stuName;
+                updateBasicInfo();
+
+                // 重新加载学生信息
+                await loadStudentInfo();
+
+            } else {
+                showMessage(data.message || '更新失败', 'error');
+            }
+
+        } catch (error) {
+            console.error('更新失败:', error);
+            showMessage('更新失败: ' + error.message, 'error');
+        }
+    });
+
+    // ==================== 系统信息更新 ====================
+    function updateSystemInfo() {
+        document.getElementById('systemRole').textContent = '学生';
+        document.getElementById('systemUserId').textContent = currentUserId;
+        document.getElementById('systemApiBase').textContent = API_BASE;
+        document.getElementById('loginTime').textContent = loginTime.toLocaleString('zh-CN');
+    }
+
+    // ==================== 图片预览功能 ====================
+    function previewFaceImage(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('facePreview');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // ==================== 文件上传功能 ====================
+    async function uploadFace() {
+        const fileInput = document.getElementById('faceFile');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            showMessage('请先选择照片', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('faceImage', file);
+
+        document.getElementById('faceLoading').style.display = 'block';
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE}/student/${currentUserId}/face`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showMessage('人脸照片更新成功！', 'success');
+                fileInput.value = '';
+                document.getElementById('facePreview').style.display = 'none';
+            } else {
+                showMessage(data.message || '更新失败', 'error');
+            }
+        } catch (error) {
+            showMessage('上传失败：' + error.message, 'error');
+        } finally {
+            document.getElementById('faceLoading').style.display = 'none';
+        }
+    }
+
+    // ==================== 密码修改功能 ====================
+    document.getElementById('passwordForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const oldPassword = document.getElementById('oldPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (newPassword.length < 6) {
+            showMessage('新密码长度至少6位', 'error');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showMessage('两次输入的新密码不一致', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('oldPasswd', oldPassword);
+        formData.append('newPasswd', newPassword);
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE}/student/${currentUserId}/password`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showMessage('密码修改成功！', 'success');
+                document.getElementById('passwordForm').reset();
+            } else {
+                showMessage(data.message || '修改失败', 'error');
+            }
+        } catch (error) {
+            showMessage('修改失败：' + error.message, 'error');
+        }
+    });
+
+    // ==================== 签到相关功能 ====================
+    async function loadAttendanceInfo() {
+        try {
+            // 这里应该调用获取签到记录的API
+            // 暂时模拟数据
+            const today = new Date();
+            const status = Math.random() > 0.5 ? 'present' : 'absent';
+
+            updateTodayStatus(status);
+            updateAttendanceHistory();
+
+        } catch (error) {
+            console.error('加载签到信息失败:', error);
+        }
+    }
+
+    function updateTodayStatus(status) {
+        const statusIndicator = document.getElementById('todayStatus');
+        const statusText = document.getElementById('todayStatusText');
+
+        switch(status) {
+            case 'present':
+                statusIndicator.className = 'status-indicator status-present';
+                statusText.textContent = '今日签到状态：✅ 已签到';
+                document.getElementById('checkInBtn').disabled = true;
+                document.getElementById('checkInBtn').textContent = '✅ 今日已签到';
+                break;
+            case 'absent':
+                statusIndicator.className = 'status-indicator status-absent';
+                statusText.textContent = '今日签到状态：❌ 未签到';
+                document.getElementById('checkInBtn').disabled = false;
+                document.getElementById('checkInBtn').textContent = '📍 人脸签到';
+                break;
+            case 'late':
+                statusIndicator.className = 'status-indicator status-late';
+                statusText.textContent = '今日签到状态：⚠️ 迟到';
+                document.getElementById('checkInBtn').disabled = true;
+                document.getElementById('checkInBtn').textContent = '⚠️ 今日已迟到';
+                break;
+            default:
+                statusIndicator.className = 'status-indicator';
+                statusText.textContent = '今日签到状态：加载中...';
+                document.getElementById('checkInBtn').disabled = true;
+                document.getElementById('checkInBtn').textContent = '📍 人脸签到';
+        }
+    }
+
+    function updateAttendanceHistory() {
+        // 模拟签到记录
+        const records = [
+            { date: '2023-10-01', time: '08:30', status: 'present' },
+            { date: '2023-10-02', time: '08:45', status: 'present' },
+            { date: '2023-10-03', time: '09:15', status: 'late' },
+            { date: '2023-10-04', time: '08:25', status: 'present' },
+            { date: '2023-10-05', time: '08:40', status: 'present' },
+        ];
+
+        let html = '';
+        records.forEach(record => {
+            const statusIcon = record.status === 'present' ? '✅' :
+                record.status === 'late' ? '⚠️' : '❌';
+
+            html += `
+                    <div class="attendance-item">
+                        <div class="attendance-date">${record.date}</div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="attendance-time">${record.time}</span>
+                            <span>${statusIcon}</span>
+                        </div>
+                    </div>
+                `;
+        });
+
+        document.getElementById('attendanceHistory').innerHTML = html;
+    }
+
+    // ==================== 人脸签到功能 ====================
+    async function checkIn() {
+        // 打开签到模态框
+        document.getElementById('checkInModal').style.display = 'flex';
+
+        // 启动摄像头
+        await startCamera();
+    }
+
+    async function startCamera() {
+        try {
+            const video = document.getElementById('cameraPreview');
+
+            cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'user',
+                    width: { ideal: 640 },
+                    height: { ideal: 480 }
+                },
+                audio: false
+            });
+
+            video.srcObject = cameraStream;
+            addDebugInfo('摄像头启动成功');
+
+        } catch (error) {
+            console.error('启动摄像头失败:', error);
+            showMessage('启动摄像头失败: ' + error.message, 'error');
+            closeModal('checkInModal');
+        }
+    }
+
+    function stopCamera() {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+        }
+        closeModal('checkInModal');
+    }
+
+    async function captureFace() {
+        try {
+            const video = document.getElementById('cameraPreview');
+            const canvas = document.getElementById('faceCanvas');
+            const context = canvas.getContext('2d');
+
+            // 绘制视频帧到canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // 显示处理中界面
+            document.getElementById('faceCaptureArea').style.display = 'none';
+            document.getElementById('checkInResult').style.display = 'block';
+            document.getElementById('checkInMessage').textContent = '正在验证人脸...';
+
+            // 将canvas转换为Blob
+            canvas.toBlob(async (blob) => {
+                try {
+                    const formData = new FormData();
+                    formData.append('faceImage', blob, 'checkin.jpg');
+
+                    // 这里应该调用签到API
+                    // 模拟API调用
+                    setTimeout(() => {
+                        // 模拟成功响应
+                        const success = Math.random() > 0.2; // 80%成功率
+
+                        if (success) {
+                            document.getElementById('checkInMessage').textContent = '✅ 签到成功！';
+                            document.getElementById('checkInSpinner').style.display = 'none';
+
+                            // 更新签到状态
+                            updateTodayStatus('present');
+
+                            // 2秒后关闭模态框
+                            setTimeout(() => {
+                                stopCamera();
+                                closeModal('checkInModal');
+                                showMessage('签到成功！', 'success');
+                            }, 2000);
+                        } else {
+                            document.getElementById('checkInMessage').textContent = '❌ 人脸识别失败，请重试';
+                            document.getElementById('checkInSpinner').style.display = 'none';
+
+                            setTimeout(() => {
+                                document.getElementById('faceCaptureArea').style.display = 'block';
+                                document.getElementById('checkInResult').style.display = 'none';
+                                document.getElementById('checkInSpinner').style.display = 'block';
+                            }, 2000);
+                        }
+                    }, 1500);
+
+                } catch (error) {
+                    console.error('签到失败:', error);
+                    showMessage('签到失败: ' + error.message, 'error');
+                }
+            }, 'image/jpeg', 0.8);
+
+        } catch (error) {
+            console.error('拍照失败:', error);
+            showMessage('拍照失败: ' + error.message, 'error');
+        }
+    }
+
+    // ==================== 系统功能 ====================
+    async function checkSystemHealth() {
+        try {
+            showMessage('正在检查系统状态...', 'info');
+            const response = await fetch(`${API_BASE}/system/health`);
+            if (response.ok) {
+                showMessage('系统状态正常 ✓', 'success');
+            } else {
+                showMessage(`系统状态异常: ${response.status}`, 'error');
+            }
+        } catch (error) {
+            showMessage('检查系统状态失败: ' + error.message, 'error');
+        }
+    }
+
+    function clearLocalStorage() {
+        if (confirm('确定要清除所有本地缓存数据吗？')) {
+            localStorage.clear();
+            showMessage('本地缓存已清除，页面将刷新', 'warning');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    // ==================== 调试功能 ====================
+    function toggleDebugPanel() {
+        const panel = document.getElementById('debugPanel');
+        const button = event.target;
+
+        if (panel.style.display === 'none' || !panel.style.display) {
+            panel.style.display = 'block';
+            button.textContent = '隐藏调试信息';
+        } else {
+            panel.style.display = 'none';
+            button.textContent = '显示调试信息';
+        }
+    }
+
+    function addDebugInfo(message) {
+        const debugInfo = document.getElementById('debugInfo');
+        const timestamp = new Date().toLocaleTimeString();
+        debugInfo.innerHTML = `<div><strong>[${timestamp}]</strong> ${message}</div>` + debugInfo.innerHTML;
+    }
+
+    // ==================== 工具函数 ====================
+    function showMessage(message, type) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = message;
+        messageDiv.className = `message ${type}`;
+        messageDiv.style.display = 'block';
+
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 3000);
+    }
+
+    function logout() {
+        if (confirm('确定要退出登录吗？')) {
+            console.log('用户退出登录');
+            localStorage.clear();
+            window.location.href = 'student-login.html';
+        }
+    }
+
+    // 窗口关闭时停止摄像头
+    window.addEventListener('beforeunload', () => {
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+        }
+    });
+</script>
+</body>
+</html>

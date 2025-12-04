@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教师注册 - 人脸识别签到系统</title>
+    <!-- 样式与student-register.html相同 -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .register-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-upload {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .file-upload-icon {
+            font-size: 36px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .file-upload-text {
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .file-upload-info {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .preview-img {
+            max-width: 200px;
+            max-height: 200px;
+            margin: 10px auto;
+            border-radius: 8px;
+            border: 2px solid #eee;
+            display: none;
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-top: 10px;
+        }
+
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .register-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .back-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .id-check {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .id-check input {
+            flex: 1;
+        }
+
+        .check-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .check-btn:hover {
+            background: #5a6268;
+        }
+
+        .check-result {
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .taken {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+<div class="register-container">
+    <div class="logo">
+        <h1>教师注册</h1>
+        <p>管理员为教师创建账户</p>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <form id="registerForm">
+        <!-- 工号输入与检查 -->
+        <div class="form-group">
+            <label for="teachId">工号 *</label>
+            <div class="id-check">
+                <input type="text" id="teachId" placeholder="请输入教师工号" required>
+                <button type="button" class="check-btn" onclick="checkTeacherId()">检查</button>
+            </div>
+            <div id="idCheckResult" class="check-result"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="teachName">姓名 *</label>
+            <input type="text" id="teachName" placeholder="请输入教师姓名" required>
+        </div>
+
+        <div class="form-group">
+            <label for="college">学院 *</label>
+            <input type="text" id="college" placeholder="请输入所在学院" required>
+        </div>
+
+        <div class="form-group">
+            <label for="passwd">初始密码 *</label>
+            <input type="password" id="passwd" placeholder="请设置初始密码" required>
+        </div>
+
+        <div class="form-group">
+            <label for="confirmPasswd">确认密码 *</label>
+            <input type="password" id="confirmPasswd" placeholder="请再次输入密码" required>
+        </div>
+
+        <!-- 人脸照片上传 -->
+        <div class="form-group">
+            <label>人脸照片 *</label>
+            <div class="file-upload" onclick="document.getElementById('faceImage').click()">
+                <div class="file-upload-icon">📷</div>
+                <div class="file-upload-text">点击上传人脸照片</div>
+                <div class="file-upload-info">支持 JPG、PNG 格式，建议正面清晰照片</div>
+            </div>
+            <input type="file" id="faceImage" accept="image/*" style="display: none;"
+                   onchange="previewFaceImage(event)" required>
+            <img id="facePreview" class="preview-img" alt="人脸预览">
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <span style="margin-left: 10px;">注册中，请稍候...</span>
+        </div>
+
+        <button type="submit" class="register-btn" id="registerBtn">注册教师</button>
+    </form>
+
+    <div class="back-link">
+        <p><a href="teacher-login.html">返回教师登录</a> | <a href="teacher-dashboard.html">返回仪表板</a></p>
+    </div>
+</div>
+
+<script>
+    const API_BASE = 'http://localhost:8080/api';
+
+    // 检查是否已登录（管理员）
+    window.onload = function() {
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('role');
+
+        // if (!token || role !== 'ADMIN') {
+        //     window.location.href = 'teacher-login.html';
+        // }
+    };
+
+    // 检查工号是否可用
+    async function checkTeacherId() {
+        const teachId = document.getElementById('teachId').value.trim();
+        const checkResult = document.getElementById('idCheckResult');
+
+        if (!teachId) {
+            showMessage('请输入工号', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/teacher/auth/check/${teachId}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            const data = await response.json();
+
+            checkResult.textContent = data.message;
+            checkResult.className = `check-result ${data.exists ? 'taken' : 'available'}`;
+            checkResult.style.display = 'block';
+
+            if (data.exists) {
+                document.getElementById('registerBtn').disabled = true;
+            } else {
+                document.getElementById('registerBtn').disabled = false;
+            }
+
+        } catch (error) {
+            checkResult.textContent = '检查失败：' + error.message;
+            checkResult.className = 'check-result error';
+            checkResult.style.display = 'block';
+        }
+    }
+
+    // 预览人脸照片（与student-register.html相同）
+    function previewFaceImage(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('facePreview');
+
+        if (file) {
+            if (!file.type.match('image/jpeg') && !file.type.match('image/png')) {
+                showMessage('请选择 JPG 或 PNG 格式的图片', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showMessage('图片大小不能超过5MB', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // 提交注册表单
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const teachId = document.getElementById('teachId').value.trim();
+        const teachName = document.getElementById('teachName').value.trim();
+        const college = document.getElementById('college').value.trim();
+        const passwd = document.getElementById('passwd').value;
+        const confirmPasswd = document.getElementById('confirmPasswd').value;
+        const faceImage = document.getElementById('faceImage').files[0];
+
+        // 验证输入
+        if (!teachId || !teachName || !college || !passwd || !faceImage) {
+            showMessage('请填写所有必填项', 'error');
+            return;
+        }
+
+        if (passwd.length < 6) {
+            showMessage('密码长度至少6位', 'error');
+            return;
+        }
+
+        if (passwd !== confirmPasswd) {
+            showMessage('两次输入的密码不一致', 'error');
+            return;
+        }
+
+        // 创建FormData
+        const formData = new FormData();
+        formData.append('teachId', teachId);
+        formData.append('teachName', teachName);
+        formData.append('college', college);
+        formData.append('passwd', passwd);
+        formData.append('faceImage', faceImage);
+
+        // 显示加载
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('registerBtn').disabled = true;
+
+        try {
+            const response = await fetch(`${API_BASE}/teacher/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showMessage('教师注册成功！工号：' + data.teachId, 'success');
+
+                // 3秒后重置表单
+                setTimeout(() => {
+                    document.getElementById('registerForm').reset();
+                    document.getElementById('facePreview').style.display = 'none';
+                    document.getElementById('idCheckResult').style.display = 'none';
+                    document.getElementById('teachId').focus();
+                }, 3000);
+            } else {
+                showMessage('注册失败：' + data.message, 'error');
+            }
+        } catch (error) {
+            showMessage('网络错误：' + error.message, 'error');
+        } finally {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('registerBtn').disabled = false;
+        }
+    });
+
+    // 显示消息
+    function showMessage(message, type) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = message;
+        messageDiv.className = `message ${type}`;
+        messageDiv.style.display = 'block';
+
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 3000);
+    }
+
+    // 输入工号后自动检查
+    document.getElementById('teachId').addEventListener('blur', function() {
+        if (this.value.trim()) {
+            checkTeacherId();
+        }
+    });
+</script>
+</body>
+</html>

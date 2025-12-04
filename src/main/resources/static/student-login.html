@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生登录 - 人脸识别签到系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 0 20px;
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .switch-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .switch-link a {
+            color: #4facfe;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .switch-link a:hover {
+            text-decoration: underline;
+        }
+
+        .debug-info {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-size: 12px;
+            color: #666;
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .face-login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-top: 10px;
+        }
+
+        .face-login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .face-login-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background: #e0e0e0;
+        }
+
+        .divider::before {
+            left: 0;
+        }
+
+        .divider::after {
+            right: 0;
+        }
+
+        .face-preview {
+            max-width: 150px;
+            max-height: 150px;
+            margin: 15px auto;
+            border-radius: 8px;
+            display: block;
+            display: none;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="login-box">
+        <div class="logo">
+            <h1>人脸识别签到系统</h1>
+            <p>学生登录</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="stuId">学号</label>
+                <input type="text" id="stuId" placeholder="请输入学号" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="passwd">密码</label>
+                <input type="password" id="passwd" placeholder="请输入密码" required>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <span style="margin-left: 10px;">登录中...</span>
+            </div>
+
+            <button type="submit" class="login-btn" id="submitBtn">密码登录</button>
+        </form>
+
+        <div class="divider">或</div>
+
+        <div id="faceLoginSection">
+            <div class="form-group">
+                <label for="faceImage">人脸登录</label>
+                <div class="file-input" onclick="document.getElementById('faceImage').click()"
+                     style="padding: 20px; border: 2px dashed #e0e0e0; border-radius: 8px; text-align: center; cursor: pointer;">
+                    📁 点击选择人脸照片
+                </div>
+                <input type="file" id="faceImage" accept="image/*" style="display: none;"
+                       onchange="previewFaceImage(event)">
+                <img id="facePreview" class="face-preview" alt="人脸预览">
+            </div>
+
+            <button type="button" class="face-login-btn" onclick="faceLogin()" id="faceLoginBtn">
+                人脸识别登录
+            </button>
+        </div>
+
+        <div id="errorMsg" class="error-message"></div>
+
+        <div class="switch-link">
+            教师登录？ <a href="teacher-login.html">点击这里</a>
+        </div>
+
+        <div id="debugInfo" class="debug-info"></div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = 'http://localhost:8080/api';
+    let isLoggingIn = false;
+
+    // 页面加载时检查是否已登录
+    window.onload = function() {
+        console.log('=== 学生登录页面加载 ===');
+
+        // 清除之前的调试信息
+        localStorage.removeItem('student_debug_info');
+
+        // 检查是否已登录
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        const role = localStorage.getItem('role');
+
+        console.log('当前登录状态检查:');
+        console.log('- token:', token ? '存在' : '不存在');
+        console.log('- userId:', userId);
+        console.log('- role:', role);
+
+        // 如果已登录且是学生角色，直接跳转到仪表板
+        if (token && role === 'STUDENT' && userId) {
+            console.log('检测到已登录，跳转到学生仪表板');
+            showMessage('检测到已登录，正在跳转...', 'info');
+            setTimeout(() => {
+                window.location.href = 'student-dashboard.html';
+            }, 1000);
+        }
+
+        // 自动填充测试账号（开发环境）
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            document.getElementById('stuId').value = '2024b11011';
+            document.getElementById('passwd').value = '111111';
+            console.log('已填充测试账号: 2024b11011 / 111111');
+        }
+    };
+
+    // 密码登录表单提交
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        if (isLoggingIn) return;
+
+        const stuId = document.getElementById('stuId').value.trim();
+        const passwd = document.getElementById('passwd').value;
+
+        // 验证输入
+        if (!stuId) {
+            showMessage('请输入学号', 'error');
+            document.getElementById('stuId').focus();
+            return;
+        }
+
+        if (!passwd) {
+            showMessage('请输入密码', 'error');
+            document.getElementById('passwd').focus();
+            return;
+        }
+
+        // 开始登录
+        await performLogin({ stuId, passwd }, 'password');
+    });
+
+    // 人脸登录
+    async function faceLogin() {
+        if (isLoggingIn) return;
+
+        const faceImageInput = document.getElementById('faceImage');
+        const faceImage = faceImageInput.files[0];
+
+        if (!faceImage) {
+            showMessage('请先选择人脸照片', 'error');
+            return;
+        }
+
+        await performLogin({ faceImage }, 'face');
+    }
+
+    // 执行登录
+    async function performLogin(credentials, loginType) {
+        isLoggingIn = true;
+        showLoading(true);
+        clearMessages();
+
+        try {
+            console.log(`=== 开始${loginType === 'password' ? '密码' : '人脸'}登录请求 ===`);
+
+            // 创建FormData
+            const formData = new FormData();
+
+            if (loginType === 'password') {
+                formData.append('stuId', credentials.stuId);
+                formData.append('passwd', credentials.passwd);
+                console.log('学号:', credentials.stuId);
+                console.log('密码:', '***' + credentials.passwd.substring(credentials.passwd.length - 2));
+            } else {
+                formData.append('faceImage', credentials.faceImage);
+                console.log('人脸照片:', credentials.faceImage.name);
+            }
+
+            // 发送登录请求
+            const endpoint = loginType === 'password' ? 'login' : 'face-login';
+            console.log('发送请求到:', `${API_BASE}/student/auth/${endpoint}`);
+
+            const response = await fetch(`${API_BASE}/student/auth/${endpoint}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            console.log('响应状态:', response.status);
+
+            // 获取响应数据
+            const result = await response.json();
+            console.log('响应数据:', result);
+
+            // 保存调试信息
+            const debugInfo = {
+                loginType: loginType,
+                request: loginType === 'password' ?
+                    { stuId: credentials.stuId, passwdLength: credentials.passwd.length } :
+                    { faceImage: credentials.faceImage?.name },
+                response: { status: response.status, data: result }
+            };
+            localStorage.setItem('student_debug_info', JSON.stringify(debugInfo, null, 2));
+
+            // 显示调试信息（开发环境）
+            if (response.status !== 200 || !result.success) {
+                document.getElementById('debugInfo').innerHTML =
+                    `<strong>调试信息：</strong><br>
+                        登录方式: ${loginType === 'password' ? '密码登录' : '人脸登录'}<br>
+                        状态码: ${response.status}<br>
+                        完整响应: <pre>${JSON.stringify(result, null, 2)}</pre>`;
+                document.getElementById('debugInfo').style.display = 'block';
+            }
+
+            // 处理登录结果
+            if (!result.success) {
+                showMessage(result.message || '登录失败，请检查账号信息', 'error');
+                return;
+            }
+
+            // 登录成功 - 解析数据
+            console.log('=== 登录成功，解析响应数据 ===');
+
+            // 查找studentId
+            let studentId = null;
+            let studentName = null;
+
+            // 尝试多个可能的字段名
+            if (result.studentId) {
+                studentId = result.studentId;
+                console.log('从 studentId 字段获取:', studentId);
+            } else if (result.userId) {
+                studentId = result.userId;
+                console.log('从 userId 字段获取:', studentId);
+            } else if (result.studentInfo && result.studentInfo.stuId) {
+                studentId = result.studentInfo.stuId;
+                console.log('从 studentInfo.stuId 获取:', studentId);
+            } else if (result.stuId) {
+                studentId = result.stuId;
+                console.log('从 stuId 字段获取:', studentId);
+            }
+
+            // 查找studentName
+            if (result.studentName) {
+                studentName = result.studentName;
+                console.log('从 studentName 字段获取:', studentName);
+            } else if (result.studentInfo && result.studentInfo.stuName) {
+                studentName = result.studentInfo.stuName;
+                console.log('从 studentInfo.stuName 获取:', studentName);
+            } else if (result.username) {
+                studentName = result.username;
+                console.log('从 username 字段获取:', studentName);
+            } else if (result.stuName) {
+                studentName = result.stuName;
+                console.log('从 stuName 字段获取:', studentName);
+            }
+
+            // 如果没有找到studentId，尝试从token解码
+            if (!studentId && result.token) {
+                try {
+                    const payload = JSON.parse(atob(result.token.split('.')[1]));
+                    studentId = payload.userId || payload.sub;
+                    console.log('从JWT token解码获取:', studentId);
+                } catch (e) {
+                    console.log('Token解码失败:', e.message);
+                }
+            }
+
+            // 检查是否成功获取studentId
+            if (!studentId) {
+                console.error('错误：无法从响应中找到studentId！');
+                console.log('响应中的所有字段:', Object.keys(result));
+                showMessage('登录成功，但无法获取用户信息，请联系管理员', 'error');
+                return;
+            }
+
+            console.log('最终确定的学生信息:');
+            console.log('- studentId:', studentId);
+            console.log('- studentName:', studentName);
+            console.log('- role:', result.role);
+            console.log('- token:', result.token.substring(0, 50) + '...');
+
+            // 保存到localStorage
+            localStorage.setItem('token', result.token);
+            localStorage.setItem('userId', studentId);
+            localStorage.setItem('username', studentName || (loginType === 'password' ? credentials.stuId : '学生'));
+            localStorage.setItem('role', result.role || 'STUDENT');
+
+            // 验证保存
+            console.log('=== 保存到localStorage的值 ===');
+            console.log('- token:', localStorage.getItem('token') ? '已保存' : '未保存');
+            console.log('- userId:', localStorage.getItem('userId'));
+            console.log('- username:', localStorage.getItem('username'));
+            console.log('- role:', localStorage.getItem('role'));
+
+            // 显示成功消息
+            showMessage(`登录成功！欢迎 ${studentName || studentId}`, 'success');
+
+            // 延迟跳转，确保用户看到成功消息
+            setTimeout(() => {
+                console.log('跳转到学生仪表板...');
+                window.location.href = 'student-dashboard.html';
+            }, 1500);
+
+        } catch (error) {
+            console.error('登录异常:', error);
+            showMessage('网络错误: ' + error.message, 'error');
+
+            // 显示详细的错误信息
+            document.getElementById('debugInfo').innerHTML =
+                `<strong>错误详情：</strong><br>
+                    错误信息: ${error.message}<br>
+                    请检查：<br>
+                    1. 后端服务是否启动 (localhost:8080)<br>
+                    2. 网络连接是否正常<br>
+                    3. API地址是否正确: ${API_BASE}`;
+            document.getElementById('debugInfo').style.display = 'block';
+        } finally {
+            isLoggingIn = false;
+            showLoading(false);
+        }
+    }
+
+    // 图片预览
+    function previewFaceImage(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('facePreview');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // 显示/隐藏加载动画
+    function showLoading(show) {
+        const loading = document.getElementById('loading');
+        const submitBtn = document.getElementById('submitBtn');
+        const faceLoginBtn = document.getElementById('faceLoginBtn');
+
+        if (show) {
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+            faceLoginBtn.disabled = true;
+            submitBtn.textContent = '登录中...';
+            faceLoginBtn.textContent = '识别中...';
+        } else {
+            loading.style.display = 'none';
+            submitBtn.disabled = false;
+            faceLoginBtn.disabled = false;
+            submitBtn.textContent = '密码登录';
+            faceLoginBtn.textContent = '人脸识别登录';
+        }
+    }
+
+    // 显示消息
+    function showMessage(message, type) {
+        const errorMsg = document.getElementById('errorMsg');
+        errorMsg.textContent = message;
+        errorMsg.className = 'error-message';
+
+        if (type === 'error') {
+            errorMsg.style.color = '#dc3545';
+            errorMsg.style.background = '#f8d7da';
+        } else if (type === 'success') {
+            errorMsg.style.color = '#28a745';
+            errorMsg.style.background = '#d4edda';
+        } else if (type === 'info') {
+            errorMsg.style.color = '#17a2b8';
+            errorMsg.style.background = '#d1ecf1';
+        }
+
+        errorMsg.style.display = 'block';
+    }
+
+    // 清空消息
+    function clearMessages() {
+        document.getElementById('errorMsg').style.display = 'none';
+        document.getElementById('debugInfo').style.display = 'none';
+    }
+
+    // 添加回车键提交支持
+    document.getElementById('passwd').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+        }
+    });
+</script>
+</body>
+</html>

@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data
 @TableName("classes")
-public class Classes {
+public class Class {
     @TableId
-    private Integer classId;
-    private String className;
-    private String major;
-    private String grade;
+    private String clsId;
+    private String clsName;
+    private String college;
+    private Integer grade;
 }

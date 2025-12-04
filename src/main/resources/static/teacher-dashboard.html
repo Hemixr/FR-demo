@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>教师仪表板 - 人脸识别签到系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            font-size: 24px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 30px;
+        }
+
+        /* 欢迎区域 */
+        .welcome-section {
+            background: white;
+            border-radius: 15px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #667eea;
+        }
+
+        .welcome-section h1 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+
+        .welcome-section p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* 标签页 */
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 15px 15px 0 0;
+            overflow: hidden;
+            margin-bottom: 1px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab {
+            padding: 18px 35px;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+            position: relative;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #667eea;
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* 标签内容 */
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 0 0 15px 15px;
+            padding: 35px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            min-height: 500px;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 卡片容器 */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2::before {
+            content: '•';
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        /* 信息显示 */
+        .info-item {
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #666;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        /* 表单组 */
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* 按钮 */
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 消息提示 */
+        .message {
+            padding: 14px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 15px 0;
+            padding: 15px;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* 文件上传 */
+        .file-input {
+            width: 100%;
+            padding: 20px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .file-input:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .file-input.drag-over {
+            border-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .preview-img {
+            max-width: 200px;
+            max-height: 200px;
+            margin: 15px auto;
+            border-radius: 8px;
+            display: block;
+            display: none;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+            text-align: left;
+            padding: 16px 20px;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 14px;
+        }
+
+        table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e9ecef;
+            color: #555;
+            font-size: 14px;
+        }
+
+        table tbody tr {
+            transition: background 0.2s;
+        }
+
+        table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* 状态徽章 */
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* 操作按钮 */
+        .action-btn {
+            padding: 6px 12px;
+            margin-right: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-edit {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background: #138496;
+        }
+
+        .btn-enable {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-enable:hover {
+            background: #218838;
+        }
+
+        .btn-disable {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-disable:hover {
+            background: #c82333;
+        }
+
+        .btn-face {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-face:hover {
+            background: #e0a800;
+        }
+
+        /* 搜索框 */
+        .search-box {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s;
+            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close-btn:hover {
+            color: #333;
+            background: #f5f5f5;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+
+            .navbar {
+                padding: 0 15px;
+            }
+
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                overflow-x: auto;
+                flex-wrap: nowrap;
+            }
+
+            .tab {
+                min-width: auto;
+                padding: 15px 20px;
+                white-space: nowrap;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+        }
+
+        /* 调试信息 */
+        .debug-panel {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+            display: none;
+        }
+
+        .debug-toggle {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar">
+    <div class="logo">
+        <span class="logo-icon">👨‍🏫</span>
+        <span>人脸识别签到系统</span>
+    </div>
+    <div class="user-info">
+        <div class="user-avatar" id="userAvatar">T</div>
+        <div class="user-details">
+            <div class="user-name" id="username">加载中...</div>
+            <div class="user-role" id="userRole">教师</div>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+            <span>退出登录</span>
+            <span>🚪</span>
+        </button>
+    </div>
+</nav>
+
+<!-- 主内容区 -->
+<div class="container">
+    <!-- 欢迎信息 -->
+    <div class="welcome-section">
+        <h1>👋 欢迎回来，<span id="welcomeName">教师</span>！</h1>
+        <p id="teacherInfo">正在加载教师信息...</p>
+    </div>
+
+    <!-- 消息提示 -->
+    <div id="message" class="message"></div>
+
+    <!-- 标签页 -->
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('personal')">
+            <span>👤 个人信息</span>
+        </button>
+        <button class="tab" onclick="switchTab('studentMgr')">
+            <span>👨‍🎓 学生管理</span>
+        </button>
+        <button class="tab" onclick="switchTab('teacherMgr')">
+            <span>👨‍🏫 教师管理</span>
+        </button>
+        <button class="tab" onclick="switchTab('system')">
+            <span>⚙️ 系统设置</span>
+        </button>
+    </div>
+
+    <!-- 个人信息标签页 -->
+    <div id="personalTab" class="tab-content active">
+        <div class="cards-container">
+            <!-- 个人信息卡片 -->
+            <div class="card">
+                <h2>📋 个人信息</h2>
+                <div id="personalInfo">
+                    <div class="info-item">
+                        <span class="info-label">教师工号：</span>
+                        <span class="info-value" id="infoTeachId">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">姓名：</span>
+                        <span class="info-value" id="infoTeachName">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">学院：</span>
+                        <span class="info-value" id="infoCollege">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">账户状态：</span>
+                        <span class="info-value" id="infoStatus">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">注册时间：</span>
+                        <span class="info-value" id="infoCreateTime">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 更新信息卡片 -->
+            <div class="card">
+                <h2>✏️ 更新个人信息</h2>
+                <form id="updateForm">
+                    <div class="form-group">
+                        <label for="updateName">姓名</label>
+                        <input type="text" id="updateName" placeholder="输入新姓名">
+                    </div>
+                    <div class="form-group">
+                        <label for="updateCollege">学院</label>
+                        <input type="text" id="updateCollege" placeholder="输入新学院">
+                    </div>
+                    <button type="submit" class="btn">💾 更新信息</button>
+                </form>
+            </div>
+
+            <!-- 人脸管理卡片 -->
+            <div class="card">
+                <h2>📷 人脸照片管理</h2>
+                <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                    上传新的人脸照片用于签到识别。请确保照片清晰，面部正面。
+                </p>
+                <form id="faceForm">
+                    <div class="file-input" onclick="document.getElementById('faceFile').click()"
+                         id="faceFileDropZone">
+                        📁 点击选择人脸照片或拖拽到此处
+                    </div>
+                    <input type="file" id="faceFile" accept="image/*" style="display: none;"
+                           onchange="previewFaceImage(event)">
+                    <img id="facePreview" class="preview-img" alt="人脸预览">
+                    <div class="loading" id="faceLoading">
+                        <div class="loading-spinner"></div>
+                        <span style="margin-left: 10px;">上传中...</span>
+                    </div>
+                    <button type="button" class="btn" onclick="uploadFace()">
+                        📤 更新人脸照片
+                    </button>
+                </form>
+            </div>
+
+            <!-- 密码管理卡片 -->
+            <div class="card">
+                <h2>🔒 修改密码</h2>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label for="oldPassword">原密码</label>
+                        <input type="password" id="oldPassword" placeholder="输入原密码">
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">新密码</label>
+                        <input type="password" id="newPassword" placeholder="输入新密码（至少6位）">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">确认新密码</label>
+                        <input type="password" id="confirmPassword" placeholder="再次输入新密码">
+                    </div>
+                    <button type="submit" class="btn">🔐 修改密码</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 学生管理标签页 -->
+    <div id="studentMgrTab" class="tab-content">
+        <div class="search-box">
+            <input type="text" id="studentSearch" placeholder="🔍 搜索学生（学号、姓名、班级）"
+                   oninput="searchStudents()">
+            <button class="btn btn-success" onclick="openStudentRegisterModal()">
+                👨‍🎓 注册新学生
+            </button>
+        </div>
+        <div id="studentsList">
+            <div class="empty-state">
+                <div class="empty-state-icon">📚</div>
+                <p>加载学生数据中...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 教师管理标签页 -->
+    <div id="teacherMgrTab" class="tab-content">
+        <div class="search-box">
+            <input type="text" id="teacherSearch" placeholder="🔍 搜索教师（工号、姓名、学院）"
+                   oninput="searchTeachers()">
+            <button class="btn btn-success" onclick="openTeacherRegisterModal()"
+                    id="registerTeacherBtn" style="display: none;">
+                👨‍🏫 注册新教师
+            </button>
+        </div>
+        <div id="teachersList">
+            <div class="empty-state">
+                <div class="empty-state-icon">👨‍🏫</div>
+                <p>加载教师数据中...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 系统设置标签页 -->
+    <div id="systemTab" class="tab-content">
+        <div class="cards-container">
+            <div class="card">
+                <h2>📊 系统信息</h2>
+                <div class="info-item">
+                    <span class="info-label">当前用户角色：</span>
+                    <span class="info-value" id="systemRole">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">当前用户ID：</span>
+                    <span class="info-value" id="systemUserId">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">API基础地址：</span>
+                    <span class="info-value" id="systemApiBase">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">登录时间：</span>
+                    <span class="info-value" id="loginTime">-</span>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="checkSystemHealth()">
+                        🩺 检查系统状态
+                    </button>
+                    <button class="btn btn-warning" onclick="clearLocalStorage()" style="margin-left: 10px;">
+                        🗑️ 清除本地缓存
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🛠️ 调试工具</h2>
+                <button class="debug-toggle" onclick="toggleDebugPanel()">
+                    显示调试信息
+                </button>
+                <div class="debug-panel" id="debugPanel">
+                    <div id="debugInfo">
+                        <p>调试信息将显示在这里...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 模态框：注册学生 -->
+<div id="studentRegisterModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">👨‍🎓 注册新学生</h2>
+            <button class="close-btn" onclick="closeModal('studentRegisterModal')">&times;</button>
+        </div>
+        <form id="studentRegisterForm">
+            <div class="form-group">
+                <label for="regStuId">学号 *</label>
+                <input type="text" id="regStuId" placeholder="输入学号" required>
+            </div>
+            <div class="form-group">
+                <label for="regStuName">姓名 *</label>
+                <input type="text" id="regStuName" placeholder="输入姓名" required>
+            </div>
+            <div class="form-group">
+                <label for="regClsId">班级</label>
+                <input type="text" id="regClsId" placeholder="输入班级（可选）">
+            </div>
+            <div class="form-group">
+                <label for="regPasswd">密码 *</label>
+                <input type="password" id="regPasswd" placeholder="输入密码" required>
+            </div>
+            <div class="form-group">
+                <label for="regFaceImage">人脸照片 *</label>
+                <div class="file-input" onclick="document.getElementById('regFaceImage').click()">
+                    📁 点击选择人脸照片
+                </div>
+                <input type="file" id="regFaceImage" accept="image/*" style="display: none;"
+                       onchange="previewRegisterFace(event)" required>
+                <img id="regFacePreview" class="preview-img" alt="人脸预览">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn" style="flex: 1;">✅ 注册学生</button>
+                <button type="button" class="btn btn-secondary" style="flex: 1;"
+                        onclick="closeModal('studentRegisterModal')">
+                    ❌ 取消
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 模态框：注册教师 -->
+<div id="teacherRegisterModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">👨‍🏫 注册新教师</h2>
+            <button class="close-btn" onclick="closeModal('teacherRegisterModal')">&times;</button>
+        </div>
+        <form id="teacherRegisterForm">
+            <div class="form-group">
+                <label for="regTeachId">工号 *</label>
+                <input type="text" id="regTeachId" placeholder="输入工号" required>
+            </div>
+            <div class="form-group">
+                <label for="regTeachName">姓名 *</label>
+                <input type="text" id="regTeachName" placeholder="输入姓名" required>
+            </div>
+            <div class="form-group">
+                <label for="regCollege">学院</label>
+                <input type="text" id="regCollege" placeholder="输入学院">
+            </div>
+            <div class="form-group">
+                <label for="regTeachPasswd">密码 *</label>
+                <input type="password" id="regTeachPasswd" placeholder="输入密码" required>
+            </div>
+            <div class="form-group">
+                <label for="regTeachFaceImage">人脸照片 *</label>
+                <div class="file-input" onclick="document.getElementById('regTeachFaceImage').click()">
+                    📁 点击选择人脸照片
+                </div>
+                <input type="file" id="regTeachFaceImage" accept="image/*" style="display: none;"
+                       onchange="previewRegisterTeacherFace(event)" required>
+                <img id="regTeachFacePreview" class="preview-img" alt="人脸预览">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn" style="flex: 1;">✅ 注册教师</button>
+                <button type="button" class="btn btn-secondary" style="flex: 1;"
+                        onclick="closeModal('teacherRegisterModal')">
+                    ❌ 取消
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // ==================== 全局变量 ====================
+    const API_BASE = 'http://localhost:8080/api';
+    let currentUserId = '';
+    let currentRole = '';
+    let currentUsername = '';
+    let allStudents = [];
+    let allTeachers = [];
+    let loginTime = new Date();
+
+    // ==================== 页面初始化 ====================
+    window.onload = async function() {
+        console.log('=== 教师仪表板开始加载 ===');
+
+        // 获取localStorage中的数据
+        const token = localStorage.getItem('token');
+        currentUserId = localStorage.getItem('userId');
+        currentRole = localStorage.getItem('role');
+        currentUsername = localStorage.getItem('username');
+
+        console.log('从localStorage读取:');
+        console.log('- token:', token ? '存在 (' + token.substring(0, 20) + '...)' : '不存在');
+        console.log('- userId:', currentUserId);
+        console.log('- role:', currentRole);
+        console.log('- username:', currentUsername);
+
+        // 检查登录状态
+        if (!token || !currentUserId) {
+            console.error('未登录或登录信息不完整');
+            showMessage('请先登录', 'warning');
+            setTimeout(() => {
+                window.location.href = 'teacher-login.html';
+            }, 1500);
+            return;
+        }
+
+        // 如果是学生，重定向到学生面板
+        if (currentRole === 'STUDENT') {
+            console.log('检测到学生角色，重定向到学生面板');
+            showMessage('检测到学生账号，正在跳转...', 'warning');
+            setTimeout(() => {
+                window.location.href = 'student-dashboard.html';
+            }, 1500);
+            return;
+        }
+
+        // 更新页面基本信息
+        updateBasicInfo();
+
+        // 加载教师详细信息
+        await loadTeacherInfo();
+
+        // 更新系统信息
+        updateSystemInfo();
+
+        console.log('=== 教师仪表板加载完成 ===');
+
+        // 添加调试信息
+        addDebugInfo('页面加载完成');
+    };
+
+    // ==================== 基本信息更新 ====================
+    function updateBasicInfo() {
+        // 更新用户显示信息
+        document.getElementById('username').textContent = currentUsername || '教师';
+        document.getElementById('welcomeName').textContent = currentUsername || '教师';
+        document.getElementById('userRole').textContent = currentRole === 'ADMIN' ? '管理员' : '教师';
+
+        // 设置用户头像首字母
+        const avatar = document.getElementById('userAvatar');
+        if (currentUsername && currentUsername.length > 0) {
+            avatar.textContent = currentUsername.charAt(0).toUpperCase();
+        }
+    }
+
+    // ==================== 加载教师信息 ====================
+    async function loadTeacherInfo() {
+        console.log('=== 开始加载教师详细信息 ===');
+        console.log('当前用户ID:', currentUserId);
+
+        const token = localStorage.getItem('token');
+        if (!token || !currentUserId) {
+            console.error('缺少token或userId');
+            showMessage('请重新登录', 'error');
+            return;
+        }
+
+        try {
+            console.log('发送请求到:', `${API_BASE}/teacher/${currentUserId}`);
+
+            // 显示加载状态
+            document.getElementById('teacherInfo').textContent = '正在加载教师信息...';
+
+            const response = await fetch(`${API_BASE}/teacher/${currentUserId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log('响应状态:', response.status);
+            console.log('响应状态文本:', response.statusText);
+
+            // 检查响应状态
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('HTTP错误响应:', errorText);
+
+                if (response.status === 401) {
+                    showMessage('登录已过期，请重新登录', 'error');
+                    setTimeout(logout, 1500);
+                    return;
+                } else if (response.status === 403) {
+                    showMessage('权限不足，无法访问该资源', 'error');
+                    return;
+                } else if (response.status === 404) {
+                    showMessage('教师信息不存在，请联系管理员', 'error');
+                    return;
+                }
+
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            // 解析响应数据
+            const result = await response.json();
+            console.log('教师信息响应:', result);
+
+            // 处理响应
+            if (result.success) {
+                console.log('成功获取教师信息');
+
+                // 更新个人信息显示
+                document.getElementById('infoTeachId').textContent = result.teachId || '未知';
+                document.getElementById('infoTeachName').textContent = result.teachName || '未知';
+                document.getElementById('infoCollege').textContent = result.college || '未设置';
+
+                // 处理状态显示
+                const statusText = result.enabled ? '正常' : '已禁用';
+                const statusColor = result.enabled ? 'green' : 'red';
+                document.getElementById('infoStatus').textContent = statusText;
+                document.getElementById('infoStatus').style.color = statusColor;
+
+                // 处理创建时间
+                if (result.createTime) {
+                    const createTime = new Date(result.createTime).toLocaleString('zh-CN');
+                    document.getElementById('infoCreateTime').textContent = createTime;
+                } else {
+                    document.getElementById('infoCreateTime').textContent = '未知';
+                }
+
+                // 更新欢迎信息
+                document.getElementById('teacherInfo').textContent =
+                    `工号：${result.teachId} | 学院：${result.college || '未设置'} | 角色：${currentRole === 'ADMIN' ? '管理员' : '教师'}`;
+
+                // 更新表单默认值
+                document.getElementById('updateName').value = result.teachName || '';
+                document.getElementById('updateCollege').value = result.college || '';
+
+                // 更新localStorage中的username（确保一致）
+                if (result.teachName && result.teachName !== currentUsername) {
+                    localStorage.setItem('username', result.teachName);
+                    currentUsername = result.teachName;
+                    updateBasicInfo();
+                }
+
+                showMessage('个人信息加载成功', 'success');
+                addDebugInfo(`教师信息加载成功: ${result.teachId} - ${result.teachName}`);
+
+            } else {
+                console.error('获取教师信息失败:', result.message);
+                showMessage(result.message || '获取教师信息失败', 'error');
+                document.getElementById('teacherInfo').textContent = '加载失败';
+            }
+
+        } catch (error) {
+            console.error('加载教师信息异常:', error);
+            showMessage('加载信息失败: ' + error.message, 'error');
+            document.getElementById('teacherInfo').textContent = '加载失败';
+            addDebugInfo(`加载失败: ${error.message}`);
+        }
+    }
+
+    // ==================== 更新教师信息 ====================
+    document.getElementById('updateForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const teachName = document.getElementById('updateName').value.trim();
+        const college = document.getElementById('updateCollege').value.trim();
+
+        if (!teachName) {
+            showMessage('姓名不能为空', 'error');
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        const formData = new FormData();
+        formData.append('teachName', teachName);
+        if (college) formData.append('college', college);
+
+        try {
+            console.log('更新教师信息:', { teachName, college });
+
+            const response = await fetch(`${API_BASE}/teacher/${currentUserId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            console.log('更新响应:', data);
+
+            if (data.success) {
+                showMessage('个人信息更新成功！', 'success');
+
+                // 更新localStorage
+                localStorage.setItem('username', teachName);
+                currentUsername = teachName;
+                updateBasicInfo();
+
+                // 重新加载教师信息
+                await loadTeacherInfo();
+
+            } else {
+                showMessage(data.message || '更新失败', 'error');
+            }
+
+        } catch (error) {
+            console.error('更新失败:', error);
+            showMessage('更新失败: ' + error.message, 'error');
+        }
+    });
+
+    // ==================== 系统信息更新 ====================
+    function updateSystemInfo() {
+        document.getElementById('systemRole').textContent = currentRole === 'ADMIN' ? '管理员' : '教师';
+        document.getElementById('systemUserId').textContent = currentUserId;
+        document.getElementById('systemApiBase').textContent = API_BASE;
+        document.getElementById('loginTime').textContent = loginTime.toLocaleString('zh-CN');
+
+        // 如果是管理员，显示注册教师按钮
+        if (currentRole === 'ADMIN') {
+            document.getElementById('registerTeacherBtn').style.display = 'inline-flex';
+        }
+    }
+
+    // ==================== 标签页切换 ====================
+    function switchTab(tabName) {
+        console.log('切换标签页到:', tabName);
+
+        // 更新标签页样式
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+
+        // 激活当前标签页
+        event.target.classList.add('active');
+        document.getElementById(tabName + 'Tab').classList.add('active');
+
+        // 加载对应数据
+        if (tabName === 'studentMgr') {
+            loadStudents();
+        } else if (tabName === 'teacherMgr') {
+            loadTeachers();
+        }
+
+        addDebugInfo(`切换到标签页: ${tabName}`);
+    }
+
+    // ==================== 学生管理功能 ====================
+    async function loadStudents() {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE}/student/all`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 401) {
+                logout();
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                allStudents = data.students || [];
+                displayStudents(allStudents);
+                addDebugInfo(`加载学生列表成功，共${allStudents.length}条记录`);
+            } else {
+                document.getElementById('studentsList').innerHTML =
+                    `<div class="empty-state">
+                            <div class="empty-state-icon">⚠️</div>
+                            <p>加载失败：${data.message}</p>
+                        </div>`;
+            }
+
+        } catch (error) {
+            console.error('加载学生列表失败:', error);
+            document.getElementById('studentsList').innerHTML =
+                `<div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <p>加载失败：${error.message}</p>
+                    </div>`;
+        }
+    }
+
+    function displayStudents(students) {
+        if (!students || students.length === 0) {
+            document.getElementById('studentsList').innerHTML =
+                `<div class="empty-state">
+                        <div class="empty-state-icon">📚</div>
+                        <p>暂无学生数据</p>
+                    </div>`;
+            return;
+        }
+
+        let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>学号</th>
+                            <th>姓名</th>
+                            <th>班级</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+        students.forEach(student => {
+            html += `
+                    <tr>
+                        <td>${student.stuId || '-'}</td>
+                        <td>${student.stuName || '-'}</td>
+                        <td>${student.clsId || '-'}</td>
+                        <td>
+                            <span class="status-badge ${student.enabled ? 'status-active' : 'status-inactive'}">
+                                ${student.enabled ? '正常' : '已禁用'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="action-btn btn-edit" onclick="editStudent('${student.stuId}')">编辑</button>
+                            ${student.enabled ?
+                `<button class="action-btn btn-disable" onclick="toggleStudentStatus('${student.stuId}', false)">禁用</button>` :
+                `<button class="action-btn btn-enable" onclick="toggleStudentStatus('${student.stuId}', true)">启用</button>`
+            }
+                            <button class="action-btn btn-face" onclick="updateStudentFace('${student.stuId}')">人脸</button>
+                        </td>
+                    </tr>
+                `;
+        });
+
+        html += `
+                    </tbody>
+                </table>
+            `;
+
+        document.getElementById('studentsList').innerHTML = html;
+    }
+
+    // ==================== 教师管理功能 ====================
+    async function loadTeachers() {
+        if (currentRole !== 'ADMIN') {
+            document.getElementById('teachersList').innerHTML =
+                `<div class="empty-state">
+                        <div class="empty-state-icon">🔒</div>
+                        <p>您没有权限查看教师列表</p>
+                    </div>`;
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE}/teacher/all`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.status === 401) {
+                logout();
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                allTeachers = data.teachers || [];
+                displayTeachers(allTeachers);
+                addDebugInfo(`加载教师列表成功，共${allTeachers.length}条记录`);
+            } else {
+                document.getElementById('teachersList').innerHTML =
+                    `<div class="empty-state">
+                            <div class="empty-state-icon">⚠️</div>
+                            <p>加载失败：${data.message}</p>
+                        </div>`;
+            }
+
+        } catch (error) {
+            console.error('加载教师列表失败:', error);
+            document.getElementById('teachersList').innerHTML =
+                `<div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <p>加载失败：${error.message}</p>
+                    </div>`;
+        }
+    }
+
+    function displayTeachers(teachers) {
+        if (!teachers || teachers.length === 0) {
+            document.getElementById('teachersList').innerHTML =
+                `<div class="empty-state">
+                        <div class="empty-state-icon">👨‍🏫</div>
+                        <p>暂无教师数据</p>
+                    </div>`;
+            return;
+        }
+
+        let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>工号</th>
+                            <th>姓名</th>
+                            <th>学院</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+        teachers.forEach(teacher => {
+            html += `
+                    <tr>
+                        <td>${teacher.teachId || '-'}</td>
+                        <td>${teacher.teachName || '-'}</td>
+                        <td>${teacher.college || '-'}</td>
+                        <td>
+                            <span class="status-badge ${teacher.enabled ? 'status-active' : 'status-inactive'}">
+                                ${teacher.enabled ? '正常' : '已禁用'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="action-btn btn-edit" onclick="editTeacher('${teacher.teachId}')">编辑</button>
+                            ${teacher.enabled ?
+                `<button class="action-btn btn-disable" onclick="toggleTeacherStatus('${teacher.teachId}', false)">禁用</button>` :
+                `<button class="action-btn btn-enable" onclick="toggleTeacherStatus('${teacher.teachId}', true)">启用</button>`
+            }
+                            ${currentUserId !== teacher.teachId ?
+                `<button class="action-btn btn-face" onclick="updateTeacherFaceAdmin('${teacher.teachId}')">人脸</button>` : ''
+            }
+                        </td>
+                    </tr>
+                `;
+        });
+
+        html += `
+                    </tbody>
+                </table>
+            `;
+
+        document.getElementById('teachersList').innerHTML = html;
+    }
+
+    // ==================== 搜索功能 ====================
+    function searchStudents() {
+        const searchTerm = document.getElementById('studentSearch').value.toLowerCase();
+        if (!searchTerm) {
+            displayStudents(allStudents);
+            return;
+        }
+
+        const filtered = allStudents.filter(student =>
+            (student.stuId && student.stuId.toLowerCase().includes(searchTerm)) ||
+            (student.stuName && student.stuName.toLowerCase().includes(searchTerm)) ||
+            (student.clsId && student.clsId.toLowerCase().includes(searchTerm))
+        );
+
+        displayStudents(filtered);
+    }
+
+    function searchTeachers() {
+        const searchTerm = document.getElementById('teacherSearch').value.toLowerCase();
+        if (!searchTerm) {
+            displayTeachers(allTeachers);
+            return;
+        }
+
+        const filtered = allTeachers.filter(teacher =>
+            (teacher.teachId && teacher.teachId.toLowerCase().includes(searchTerm)) ||
+            (teacher.teachName && teacher.teachName.toLowerCase().includes(searchTerm)) ||
+            (teacher.college && teacher.college.toLowerCase().includes(searchTerm))
+        );
+
+        displayTeachers(filtered);
+    }
+
+    // ==================== 模态框功能 ====================
+    function openStudentRegisterModal() {
+        document.getElementById('studentRegisterModal').style.display = 'flex';
+    }
+
+    function openTeacherRegisterModal() {
+        document.getElementById('teacherRegisterModal').style.display = 'flex';
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    };
+
+    // ==================== 图片预览功能 ====================
+    function previewFaceImage(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('facePreview');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function previewRegisterFace(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('regFacePreview');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function previewRegisterTeacherFace(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('regTeachFacePreview');
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // ==================== 文件上传功能 ====================
+    async function uploadFace() {
+        const fileInput = document.getElementById('faceFile');
+        const file = fileInput.files[0];
+
+        if (!file) {
+            showMessage('请先选择照片', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('faceImage', file);
+
+        document.getElementById('faceLoading').style.display = 'block';
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE}/teacher/${currentUserId}/face`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showMessage('人脸照片更新成功！', 'success');
+                fileInput.value = '';
+                document.getElementById('facePreview').style.display = 'none';
+            } else {
+                showMessage(data.message || '更新失败', 'error');
+            }
+        } catch (error) {
+            showMessage('上传失败：' + error.message, 'error');
+        } finally {
+            document.getElementById('faceLoading').style.display = 'none';
+        }
+    }
+
+    // ==================== 密码修改功能 ====================
+    document.getElementById('passwordForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const oldPassword = document.getElementById('oldPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (newPassword.length < 6) {
+            showMessage('新密码长度至少6位', 'error');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showMessage('两次输入的新密码不一致', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('oldPasswd', oldPassword);
+        formData.append('newPasswd', newPassword);
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE}/teacher/${currentUserId}/password`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showMessage('密码修改成功！', 'success');
+                document.getElementById('passwordForm').reset();
+            } else {
+                showMessage(data.message || '修改失败', 'error');
+            }
+        } catch (error) {
+            showMessage('修改失败：' + error.message, 'error');
+        }
+    });
+
+    // ==================== 注册表单功能 ====================
+    document.getElementById('studentRegisterForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const stuId = document.getElementById('regStuId').value.trim();
+        const stuName = document.getElementById('regStuName').value.trim();
+        const clsId = document.getElementById('regClsId').value.trim();
+        const passwd = document.getElementById('regPasswd').value;
+        const faceImage = document.getElementById('regFaceImage').files[0];
+
+        if (!stuId || !stuName || !passwd || !faceImage) {
+            showMessage('请填写所有必填项', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('stuId', stuId);
+        formData.append('stuName', stuName);
+        formData.append('clsId', clsId);
+        formData.append('passwd', passwd);
+        formData.append('faceImage', faceImage);
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE}/student/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showMessage('学生注册成功！', 'success');
+                closeModal('studentRegisterModal');
+                document.getElementById('studentRegisterForm').reset();
+                document.getElementById('regFacePreview').style.display = 'none';
+                loadStudents();
+            } else {
+                showMessage(data.message || '注册失败', 'error');
+            }
+        } catch (error) {
+            showMessage('注册失败：' + error.message, 'error');
+        }
+    });
+
+    document.getElementById('teacherRegisterForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const teachId = document.getElementById('regTeachId').value.trim();
+        const teachName = document.getElementById('regTeachName').value.trim();
+        const college = document.getElementById('regCollege').value.trim();
+        const passwd = document.getElementById('regTeachPasswd').value;
+        const faceImage = document.getElementById('regTeachFaceImage').files[0];
+
+        if (!teachId || !teachName || !passwd || !faceImage) {
+            showMessage('请填写所有必填项', 'error');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('teachId', teachId);
+        formData.append('teachName', teachName);
+        formData.append('college', college);
+        formData.append('passwd', passwd);
+        formData.append('faceImage', faceImage);
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE}/teacher/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showMessage('教师注册成功！', 'success');
+                closeModal('teacherRegisterModal');
+                document.getElementById('teacherRegisterForm').reset();
+                document.getElementById('regTeachFacePreview').style.display = 'none';
+                loadTeachers();
+            } else {
+                showMessage(data.message || '注册失败', 'error');
+            }
+        } catch (error) {
+            showMessage('注册失败：' + error.message, 'error');
+        }
+    });
+
+    // ==================== 状态管理功能 ====================
+    async function toggleStudentStatus(stuId, enabled) {
+        const action = enabled ? '启用' : '禁用';
+        if (!confirm(`确定要${action}该学生吗？`)) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE}/student/${stuId}/status?enabled=${enabled}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showMessage(`学生已${action}！`, 'success');
+                loadStudents();
+            } else {
+                showMessage(data.message || '操作失败', 'error');
+            }
+        } catch (error) {
+            showMessage('操作失败：' + error.message, 'error');
+        }
+    }
+
+    async function toggleTeacherStatus(teachId, enabled) {
+        const action = enabled ? '启用' : '禁用';
+        if (!confirm(`确定要${action}该教师吗？`)) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE}/teacher/${teachId}/status?enabled=${enabled}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                showMessage(`教师已${action}！`, 'success');
+                loadTeachers();
+            } else {
+                showMessage(data.message || '操作失败', 'error');
+            }
+        } catch (error) {
+            showMessage('操作失败：' + error.message, 'error');
+        }
+    }
+
+    // ==================== 其他操作功能 ====================
+    function editStudent(stuId) {
+        alert('编辑学生功能开发中，学生ID：' + stuId);
+    }
+
+    function editTeacher(teachId) {
+        alert('编辑教师功能开发中，教师ID：' + teachId);
+    }
+
+    function updateStudentFace(stuId) {
+        alert('更新学生人脸功能开发中，学生ID：' + stuId);
+    }
+
+    function updateTeacherFaceAdmin(teachId) {
+        alert('更新教师人脸功能开发中，教师ID：' + teachId);
+    }
+
+    // ==================== 系统功能 ====================
+    async function checkSystemHealth() {
+        try {
+            showMessage('正在检查系统状态...', 'info');
+            const response = await fetch(`${API_BASE}/system/health`);
+            if (response.ok) {
+                showMessage('系统状态正常 ✓', 'success');
+            } else {
+                showMessage(`系统状态异常: ${response.status}`, 'error');
+            }
+        } catch (error) {
+            showMessage('检查系统状态失败: ' + error.message, 'error');
+        }
+    }
+
+    function clearLocalStorage() {
+        if (confirm('确定要清除所有本地缓存数据吗？')) {
+            localStorage.clear();
+            showMessage('本地缓存已清除，页面将刷新', 'warning');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+    }
+
+    // ==================== 调试功能 ====================
+    function toggleDebugPanel() {
+        const panel = document.getElementById('debugPanel');
+        const button = event.target;
+
+        if (panel.style.display === 'none' || !panel.style.display) {
+            panel.style.display = 'block';
+            button.textContent = '隐藏调试信息';
+        } else {
+            panel.style.display = 'none';
+            button.textContent = '显示调试信息';
+        }
+    }
+
+    function addDebugInfo(message) {
+        const debugInfo = document.getElementById('debugInfo');
+        const timestamp = new Date().toLocaleTimeString();
+        debugInfo.innerHTML = `<div><strong>[${timestamp}]</strong> ${message}</div>` + debugInfo.innerHTML;
+    }
+
+    // ==================== 工具函数 ====================
+    function showMessage(message, type) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.textContent = message;
+        messageDiv.className = `message ${type}`;
+        messageDiv.style.display = 'block';
+
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 3000);
+    }
+
+    function logout() {
+        if (confirm('确定要退出登录吗？')) {
+            console.log('用户退出登录');
+            localStorage.clear();
+            window.location.href = 'teacher-login.html';
+        }
+    }
+</script>
+</body>
+</html>

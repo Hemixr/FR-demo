@@ -12,7 +12,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/face")
-public class FaceFeatureController {
+public class FaceCompareController {
 
     @Autowired
     private FaceCompareService faceCompareService;

@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8080
 
 spring:
   datasource:
@@ -34,3 +34,11 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: AUTO
+
+jwt:
+  secret: mySecretKey12345678901234567890123456789012
+  expiration: 86400000
+
+logging:
+  level:
+    com.example: DEBUG
